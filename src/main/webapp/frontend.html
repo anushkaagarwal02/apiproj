@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Editor</title>
+</head>
+<body>
+    <h1>JavaScript Code Editor</h1>
+    <textarea id="codeEditor" rows="10" cols="50">// Example: new MathLibrary().add(5, 10);</textarea><br>
+    <button onclick="executeCode()">Run Code</button>
+    <div id="output">Output will be displayed here...</div>
+
+    <script>
+        async function executeCode() {
+            const code = document.getElementById('codeEditor').value;
+            const outputDiv = document.getElementById('output');
+
+            // Log the entered code for debugging
+            console.log("Code entered:", code);
+
+            // Updated regex to match new MathLibrary().method(num1, num2);
+            const matches = code.match(/new\s+MathLibrary\(\)\.(add|subtract|multiply)\s*\(\s*(\d+)\s*,\s*(\d+)\s*\)\s*;/);
+
+            if (matches) {
+                const method = matches[1]; // 'add', 'subtract', or 'multiply'
+                const num1 = parseInt(matches[2], 10);
+                const num2 = parseInt(matches[3], 10);
+
+                try {
+                    // Call your backend API to execute the code
+                    const response = await fetch('http://localhost:8080/api/calculate', { // Ensure the port matches your backend
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            num1: num1,
+                            num2: num2,
+                            method: method
+                        })
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+
+                    const result = await response.json();
+                    outputDiv.textContent = 'Result: ' + result.result; // Assuming API returns { result: value }
+                } catch (error) {
+                    outputDiv.textContent = 'Error: ' + error.message;
+                }
+            } else {
+                outputDiv.textContent = 'Error: Invalid code format. Please use "new MathLibrary().method(num1, num2);".';
+            }
+        }
+    </script>
+</body>
+</html>
